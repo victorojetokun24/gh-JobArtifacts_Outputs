@@ -5,12 +5,19 @@ on: # Trigger workflow on pushes to the master branch
       - master # master branch
 jobs: # Define the jobs to run in this workflow
   test: # Define a job named "test"
+
     runs-on: ubuntu-latest # Use the latest Ubuntu runner
     outputs: # Define outputs for the "test" job
       script-file: ${{ steps.publish.outputs.script-file }} # Output the script filename from the publish step
     steps: # Define the steps for the "test" job
       - name: Get code # Step to checkout the repository code
         uses: actions/checkout@v3 # Use the checkout action
+
+      - name: Use Node 18 # Step to set up Node.js environment
+        uses: actions/setup-node@v4 # Use the setup-node action
+        with: # Configuration for the setup-node action
+          node-version: 18 # Use Node.js version 18
+
       - name: Install dependencies # Step to install project dependencies
         run: npm ci # Install dependencies using npm ci
       - name: Lint code # Step to lint the code
@@ -27,6 +34,19 @@ jobs: # Define the jobs to run in this workflow
         run: npm ci # Install dependencies using npm ci
       - name: Build website # Step to build the website
         run: npm run build # Run build script
+      - name: Debug build # 
+        run: |
+          echo "Listing project root:"
+          ls -la
+          echo "Listing dist:"
+          ls -la dist || echo "❌ dist folder NOT generated"
+
+      - name: Upload build artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-files
+          path: dist
 
       - name: Publish JS Filename
         id: publish # Step to publish the JavaScript filename
