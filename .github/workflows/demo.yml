@@ -1,48 +1,62 @@
-name: Deploy website
-on:
-  push:
-    branches:
-      - master
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Get code
-        uses: actions/checkout@v3
-      - name: Install dependencies
-        run: npm ci
-      - name: Lint code
-        run: npm run lint
-      - name: Test code
-        run: npm run test
-  build:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Get code
-        uses: actions/checkout@v3
-      - name: Install dependencies
-        run: npm ci
-      - name: Build website
-        run: npm run build
-      - name: upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-files
-          path: |
-            dist
-            package.json
+name: Deploy website 
+on: # Trigger workflow on pushes to the master branch
+  push: # push events
+    branches: # only for the master branch
+      - master # master branch
+jobs: # Define the jobs to run in this workflow
+  test: # Define a job named "test"
+    runs-on: ubuntu-latest # Use the latest Ubuntu runner
+    outputs:
+      script-file: ${{ steps.publish.outputs.script-file }}
+    steps: # Define the steps for the "test" job
+      - name: Get code # Step to checkout the repository code
+        uses: actions/checkout@v3 # Use the checkout action
+      - name: Install dependencies # Step to install project dependencies
+        run: npm ci # Install dependencies using npm ci
+      - name: Lint code # Step to lint the code
+        run: npm run lint # Run linting script
+      - name: Test code # Step to run tests
+        run: npm run test # Run test script
+  build: # Define a job named "build"
+    needs: test # This job depends on the "test" job
+    runs-on: ubuntu-latest # Use the latest Ubuntu runner
+    steps: # Define the steps for the "build" job
+      - name: Get code # Step to checkout the repository code
+        uses: actions/checkout@v3 # Use the checkout action
+      - name: Install dependencies # Step to install project dependencies
+        run: npm ci # Install dependencies using npm ci
+      - name: Build website # Step to build the website
+        run: npm run build # Run build script
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: dist-files
-      - name: List files or output contents for verification
-        run: ls -la
+      - name: Publish JS Filename
+        id: publish
+        run: find dist/assets/*.js -type f -execdir echo '::set-output name=script-file::{}' ';' # 
+      - name: upload artifacts # Step to upload build artifacts
+        uses: actions/upload-artifact@v4 # Use the upload-artifact action
+        with: # Specify the artifact details
+          name: dist-files # Name of the artifact
+          path: | # Paths to include in the artifact
+            dist # The build output directory
+            package.json # Include package.json file
 
-      - name: Deploy
-        run: echo "Deploying..."
+  deploy: # Define a job named "deploy"
+    needs: build # This job depends on the "build" job
+    runs-on: ubuntu-latest # Use the latest Ubuntu runner
+    steps: # Define the steps for the "deploy" job
+      - name: Download artifacts # Step to download build artifacts
+        uses: actions/download-artifact@v4 # Use the download-artifact action
+        with: # Specify the artifact details
+          name: dist-files # Name of the artifact to download
+      - name: List files or output contents for verification # Step to verify downloaded artifacts
+        run: ls -la # List all files in the current directory
+
+      - name: output filename
+        run: echo "${{ needs.build.outputs.script-file }}"
+      - name: Deploy website # Step to deploy the website
+        run: echo "Deploying..." # Placeholder for deployment command
+
+
+# commands run on the terminal of the node project before deployment
+        # npm install
+        # npm audit fix --force
+        # npm run build
