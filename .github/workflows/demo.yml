@@ -6,8 +6,8 @@ on: # Trigger workflow on pushes to the master branch
 jobs: # Define the jobs to run in this workflow
   test: # Define a job named "test"
     runs-on: ubuntu-latest # Use the latest Ubuntu runner
-    outputs:
-      script-file: ${{ steps.publish.outputs.script-file }}
+    outputs: # Define outputs for the "test" job
+      script-file: ${{ steps.publish.outputs.script-file }} # Output the script filename from the publish step
     steps: # Define the steps for the "test" job
       - name: Get code # Step to checkout the repository code
         uses: actions/checkout@v3 # Use the checkout action
@@ -29,8 +29,12 @@ jobs: # Define the jobs to run in this workflow
         run: npm run build # Run build script
 
       - name: Publish JS Filename
-        id: publish
-        run: find dist/assets/*.js -type f -execdir echo '::set-output name=script-file::{}' ';' # 
+        id: publish # Step to publish the JavaScript filename
+        run: |
+          FILE=$(find dist/assets/*.js -type f | head -1) # Find the built JS file
+          echo "script-file=$FILE" >> $GITHUB_OUTPUT # Set the filename as an output
+          # Alternative way to set output (deprecated)
+          # find dist/assets/*.js -type f -execdir echo '::set-output name=script-file::{}' ';' # Find the built JS file and set it as an output
       - name: upload artifacts # Step to upload build artifacts
         uses: actions/upload-artifact@v4 # Use the upload-artifact action
         with: # Specify the artifact details
@@ -50,8 +54,8 @@ jobs: # Define the jobs to run in this workflow
       - name: List files or output contents for verification # Step to verify downloaded artifacts
         run: ls -la # List all files in the current directory
 
-      - name: output filename
-        run: echo "${{ needs.build.outputs.script-file }}"
+      - name: output filename # Step to output the script filename
+        run: echo "${{ needs.build.outputs.script-file }}" # Output the script filename from the build job
       - name: Deploy website # Step to deploy the website
         run: echo "Deploying..." # Placeholder for deployment command
 
