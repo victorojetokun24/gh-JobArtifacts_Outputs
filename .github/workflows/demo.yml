@@ -42,7 +42,8 @@ jobs: # Define the jobs to run in this workflow
           path: | # Paths to include in the artifact
             dist # The build output directory
             package.json # Include package.json file
-
+            **/dist/** # Include all dist directories in subfolders
+            **/build/** # Include all dist and build directories in subfolders
   deploy: # Define a job named "deploy"
     needs: build # This job depends on the "build" job
     runs-on: ubuntu-latest # Use the latest Ubuntu runner
@@ -51,6 +52,7 @@ jobs: # Define the jobs to run in this workflow
         uses: actions/download-artifact@v4 # Use the download-artifact action
         with: # Specify the artifact details
           name: dist-files # Name of the artifact to download
+          path: . # Download to the current directory
       - name: List files or output contents for verification # Step to verify downloaded artifacts
         run: ls -la # List all files in the current directory
 
