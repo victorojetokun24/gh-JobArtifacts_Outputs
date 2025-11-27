@@ -17,7 +17,11 @@ jobs: # Define the jobs to run in this workflow
         uses: actions/setup-node@v4 # Use the setup-node action
         with: # Configuration for the setup-node action
           node-version: 18 # Use Node.js version 18
-
+      - name: cache dependencies # Step to cache Node.js dependencies
+        uses: actions/cache@v3 # Use the cache action
+        with: # Configuration for the cache action
+          path: ~/.npm # Cache the npm cache directory
+          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }} # Cache key based on package-lock.json
       - name: Install dependencies # Step to install project dependencies
         run: npm ci # Install dependencies using npm ci
       - name: Lint code # Step to lint the code
@@ -30,6 +34,12 @@ jobs: # Define the jobs to run in this workflow
     steps: # Define the steps for the "build" job
       - name: Get code # Step to checkout the repository code
         uses: actions/checkout@v3 # Use the checkout action
+      
+      - name: cache dependencies # Step to cache Node.js dependencies
+        uses: actions/cache@v3 # Use the cache action
+        with: # Configuration for the cache action
+          path: ~/.npm # Cache the npm cache directory
+          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }} # Cache key based on package-lock.json
       - name: Install dependencies # Step to install project dependencies
         run: npm ci # Install dependencies using npm ci
       - name: Build website # Step to build the website
